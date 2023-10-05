@@ -1,0 +1,1 @@
+from tg_bot.handlers.admin.mailing.edit_mailing.root import router

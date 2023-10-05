@@ -1,0 +1,1 @@
+from tg_bot.handlers.admin.posts.root import router

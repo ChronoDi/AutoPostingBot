@@ -1,0 +1,26 @@
+from aiogram.fsm.state import State, StatesGroup
+
+
+class FSMMailing(StatesGroup):
+    view_mailing = State()
+    take_year = State()
+    take_month = State()
+    take_day = State()
+    take_time = State()
+    time_selected = State()
+    time_edited = State()
+    take_minutes = State()
+    take_hours = State()
+    take_group = State()
+    take_mailing_name = State()
+    create_mailing = State()
+    view_mailing_to_remove = State()
+    view_mailing_menu = State()
+    change_group = State()
+    group_changed = State()
+    edit_time = State()
+    add_post = State()
+    view_post_groups = State()
+    view_posts = State()
+    post_added = State()
+    remove_post = State()
