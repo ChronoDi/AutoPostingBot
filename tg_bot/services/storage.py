@@ -1,7 +1,8 @@
 from aiogram.fsm.storage.base import BaseStorage
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage
-from aioredis import Redis
+# from aioredis import Redis
+from redis.asyncio import Redis
 
 from tg_bot.config_data import config
 

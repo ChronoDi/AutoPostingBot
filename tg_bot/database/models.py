@@ -1,6 +1,9 @@
 import enum
 import datetime
 
+from sqlalchemy import (
+    Column, Integer, String, JSON
+)
 from sqlalchemy import BigInteger, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -85,4 +88,14 @@ class PostMailing(Base):
     post: Mapped['Post'] = relationship(back_populates='post_mailing')
     mailing: Mapped['Mailing'] = relationship(back_populates='post_mailing')
 
+
+class DbSchedule(Base):
+    __tablename__ = "taskiq_schedules"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
+    task_name:Mapped[str] = mapped_column(nullable=False)
+    args = mapped_column(JSON)
+    kwargs = mapped_column(JSON)
+    labels = mapped_column(JSON)
+    time: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
 

@@ -1,5 +1,4 @@
 import aiogram.types
-from aiogram import Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tg_bot.database.models import Post
@@ -7,7 +6,7 @@ from tg_bot.utils.database.post import get_post, get_post_groups, get_posts_by_g
 from tg_bot.utils.database.url import remove_all_urls_by_post
 
 
-async def load_post(session: AsyncSession, media_id: str, group_id: int, bot: Bot = None):
+async def load_post(session: AsyncSession, media_id: str):
     post = await get_post(session, media_id)
     file_list = []
 
@@ -25,11 +24,6 @@ async def load_post(session: AsyncSession, media_id: str, group_id: int, bot: Bo
             case 'document':
                 file_list.append(aiogram.types.InputMediaDocument(media=aiogram.types.FSInputFile(media.url),
                                                                caption=post.text if not file_list else None))
-    if bot:
-        if file_list:
-            await bot.send_media_group(group_id, media=file_list)
-        else:
-            await bot.send_message(group_id, text=post.text)
 
     return file_list, post.text
 

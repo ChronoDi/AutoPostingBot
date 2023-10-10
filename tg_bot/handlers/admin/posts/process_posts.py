@@ -86,7 +86,7 @@ async def process_remove_post(callback: CallbackQuery, lexicon: TranslatorRunner
 async def view_post(callback: CallbackQuery, lexicon: TranslatorRunner,
                     session: AsyncSession, state: FSMContext, bot: Bot):
    group_id = callback.data
-   file_list, text = await load_post(session=session, media_id=group_id)
+   file_list, text = await load_post(session=session, media_id=group_id, group_id=int(callback.data))
    keyboard = await get_back_keyboad(lexicon)
 
    if file_list:

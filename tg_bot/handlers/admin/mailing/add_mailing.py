@@ -5,7 +5,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
-from taskiq import TaskiqScheduler
 
 from tg_bot.keyboards import get_groups_keyboard
 from tg_bot.keyboards.calendar import get_years_keyboard, get_month_keyboard, get_days_keyboard, time_keyboard
@@ -17,7 +16,8 @@ from tg_bot.utils.calendar import get_current_time, change_time, try_get_future_
 from tg_bot.utils.database.mailing import create_mailing
 from tg_bot.utils.paginator import slice_dict, get_current_page
 from tg_bot.utils.process_group import get_group_dict
-from tg_bot.utils.taskiq import TaskiqController
+from tg_bot.utils.sender import send_mailing
+from tkq import db_source
 
 router: Router = Router()
 
@@ -167,7 +167,7 @@ async def process_group(callback: CallbackQuery, lexicon: TranslatorRunner, stat
 
 @router.message(F.text, StateFilter(FSMMailing.take_mailing_name))
 async def process_mailing_name(message: Message, session: AsyncSession, state: FSMContext,
-                               lexicon: TranslatorRunner, taskiq_controller: TaskiqController):
+                               lexicon: TranslatorRunner):
     name = message.text
     data = await state.get_data()
     year = int(data['year'])
@@ -179,8 +179,12 @@ async def process_mailing_name(message: Message, session: AsyncSession, state: F
 
     date, mailing_id = await create_mailing(year=year, month=month, day=day, hour=hour,
                                 minute=minute, group_id=group_id, name=name, session=session)
-    await taskiq_controller.register_mailing(mailing_id=str(mailing_id),
-                                             date=date, group_id=group_id)
+    await db_source.add_task(
+        task=send_mailing.kicker().with_labels(),
+        time=date,
+        mailing_id=mailing_id,
+        group_id=group_id
+    )
     keyboard = await get_to_mailing_keyboard(lexicon)
     await message.answer(text=lexicon.create.mailing(name=name, date=date), reply_markup=keyboard)
     await state.set_state(FSMMailing.create_mailing)
