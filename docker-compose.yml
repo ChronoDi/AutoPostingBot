@@ -18,6 +18,15 @@ services:
     ports:
       - ${REDIS_PORT}:6379
 
+  alembic_upgrade:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: alembic upgrade head
+    depends_on:
+      - postgres
+
   scheduler:
     build:
       context: .
@@ -26,6 +35,7 @@ services:
     command: taskiq scheduler tkq:sched
     depends_on:
       - redis
+      - alembic_upgrade
 
   worker:
     build:
