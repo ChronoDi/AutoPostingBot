@@ -24,7 +24,7 @@ class DbScheduleSource(ScheduleSource):
                 ScheduledTask(
                     source=self,
                     task_name=s.task_name,
-                    args=s.args,
+                    args=json.loads(s.args),
                     kwargs=json.loads(s.kwargs),
                     labels={"_sched_id": s.id, **json.loads(s.labels)},
                     time=s.time

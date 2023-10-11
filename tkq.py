@@ -8,7 +8,8 @@ from scheduler import DbScheduleSource
 from tg_bot.config_data import config
 
 broker = ListQueueBroker(
-    url=f"redis://{config.redis.host}:{config.redis.port}"
+    url=f"redis://{config.redis.host}:{config.redis.port}/2",
+    queue_name='mailing'
 )
 
 db_source = DbScheduleSource(engine=engine)

@@ -1,0 +1,46 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - ${DB_PORT}:5432
+
+  redis:
+    image: redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_USER: ${REDIS_USER}
+      REDIS_BD: ${REDIS_BD}
+    ports:
+      - ${REDIS_PORT}:6379
+
+  scheduler:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: taskiq scheduler tkq:sched
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: taskiq worker tkq:broker --fs-discover
+    depends_on:
+      - scheduler
+
+  python:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: python your_script.py
+    depends_on:
+      - worker
