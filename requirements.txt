@@ -10,3 +10,4 @@ taskiq~=0.9.1
 pytz~=2023.3.post1
 asyncpg~=0.28.0
 taskiq_aiogram~=0.3.1
+taskiq_redis~=0.5.0
