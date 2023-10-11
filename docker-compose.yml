@@ -51,6 +51,6 @@ services:
       context: .
     env_file:
       - .env
-    command: python your_script.py
+    command: python app.py
     depends_on:
       - worker
