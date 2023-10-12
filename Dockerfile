@@ -7,6 +7,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 RUN alembic upgrade head
-RUN pip install taskiq
+RUN pip install "taskiq[reload]"
 
 CMD ["python", "app.py"]
