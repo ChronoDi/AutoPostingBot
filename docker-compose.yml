@@ -1,13 +1,26 @@
 version: '3'
 services:
 
+  scheduler:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: taskiq scheduler tkq:sched
+
+  worker:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: taskiq worker tkq:broker --fs-discover
+
   python:
     build:
       context: .
     env_file:
       - .env
     command:
-      - whereis taskiq
-      - taskiq scheduler tkq:sched
-      - taskiq worker tkq:broker --fs-discover
       - python app.py
+    depends_on:
+      - worker
