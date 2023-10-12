@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-RUN alembic upgrade head
+RUN alembic -с /app/alembic.ini upgrade head
 
 COPY . .
 

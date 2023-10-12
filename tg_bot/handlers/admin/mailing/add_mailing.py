@@ -16,7 +16,7 @@ from tg_bot.utils.calendar import get_current_time, change_time, try_get_future_
 from tg_bot.utils.database.mailing import create_mailing
 from tg_bot.utils.paginator import slice_dict, get_current_page
 from tg_bot.utils.process_group import get_group_dict
-from tg_bot.utils.sender import send_mailing, set_task
+from tg_bot.utils.sender import send_mailing
 from tkq import db_source
 
 router: Router = Router()
@@ -180,7 +180,7 @@ async def process_mailing_name(message: Message, session: AsyncSession, state: F
     date, mailing_id = await create_mailing(year=year, month=month, day=day, hour=hour,
                                 minute=minute, group_id=group_id, name=name, session=session)
     await db_source.add_task(
-        task=set_task.send_mailing().with_labels(),
+        task=send_mailing.kicker().with_labels(),
         time=date,
         mailing_id=mailing_id,
         group_id=group_id
