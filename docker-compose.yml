@@ -1,56 +1,12 @@
 version: '3'
 services:
-  postgres:
-    image: postgres
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - ${DB_PORT}:5432
-
-  redis:
-    image: redis
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_USER: ${REDIS_USER}
-      REDIS_BD: ${REDIS_BD}
-    ports:
-      - ${REDIS_PORT}:6379
-
-  alembic_upgrade:
-    build:
-      context: .
-    env_file:
-      - .env
-    command: alembic upgrade head
-    depends_on:
-      - postgres
-
-  scheduler:
-    build:
-      context: .
-    env_file:
-      - .env
-    command: taskiq scheduler tkq:sched
-    depends_on:
-      - redis
-      - alembic_upgrade
-
-  worker:
-    build:
-      context: .
-    env_file:
-      - .env
-    command: taskiq worker tkq:broker --fs-discover
-    depends_on:
-      - scheduler
 
   python:
     build:
       context: .
     env_file:
       - .env
-    command: python app.py
-    depends_on:
-      - worker
+    command:
+      - taskiq scheduler tkq:sched
+      - taskiq worker tkq:broker --fs-discover
+      - python app.py
