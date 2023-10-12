@@ -6,8 +6,4 @@ services:
       context: .
     env_file:
       - .env
-    command:
-      - taskiq scheduler tkq:sched
-      - taskiq worker tkq:broker --fs-discover
-      - python app.py
-
+    command: /bin/sh -c "taskiq scheduler tkq:sched && taskiq worker tkq:broker --fs-discover && python app.py"
