@@ -31,12 +31,13 @@ async def send_mailing(mailing_id: int, group_id: int) -> None:
 
             for media_group in list_media_groups:
                 file_list = []
-                file_list, post.text = await load_post(session, media_id=media_group)
+                text = ''
+                file_list, text = await load_post(session, media_id=media_group)
 
                 if file_list:
                     await bot.send_media_group(group_id, media=file_list)
                 else:
-                    await bot.send_message(group_id, text=post.text)
+                    await bot.send_message(group_id, text=text)
 
                 await sleep(1)
 
