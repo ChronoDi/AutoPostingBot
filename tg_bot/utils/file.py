@@ -17,7 +17,7 @@ async def download_file(bot: Bot, file_id: str, name: str, folder: str):
     with open(new_file_path, 'wb') as f:
         f.write(file_path.getvalue())
 
-    return new_file_path
+    return os.path.abspath(new_file_path)
 
 def get_file_by_type(message: Message) -> TelegramObject | None:
     file_type = message.content_type
