@@ -21,6 +21,6 @@ services:
     env_file:
       - .env
     command:
-      - python app.py
+      - python3.10 app.py
     depends_on:
       - worker
