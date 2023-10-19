@@ -37,8 +37,8 @@ async def get_admins_id(session: AsyncSession) -> list[int]:
     for user in users:
         admins_id.append(user.tg_id)
 
-
     return admins_id
+
 
 async def get_admins_dict(session: AsyncSession) -> dict[str, str]:
     dict_admins: dict[str, str] = {}
@@ -57,6 +57,7 @@ def init_user_name(user: User) -> str:
     name = name + (f' ({user.user_name})' if user.user_name else '')
 
     return name
+
 
 async def get_user_tg_id(session: AsyncSession, tg_id: int) -> Union[User, None]:
     user: User = await get_user_by_tg_id(session, tg_id)
@@ -79,7 +80,7 @@ async def get_users_by_query(session: AsyncSession, query: str) -> list[User]:
     return users
 
 
-async def change_user_role(session: AsyncSession, cache: CacheAccess, tg_id: int, role: Role):
+async def change_user_role(session: AsyncSession, cache: CacheAccess, tg_id: int, role: Role) -> None:
     await change_role(session, tg_id, role)
     access = '1' if role == role.ADMIN else '0'
     await cache.add_to_dict(cache_names.ADMINS, str(tg_id), access)

@@ -1,5 +1,5 @@
 from aiogram import Router, F, Bot
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
 from aiogram.filters import StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tg_bot.keyboards.pagination import get_add_back_keyboard, get_back_remove_keyboard, get_back_keyboad, \
    get_back_scroll_keyboard
 from tg_bot.states.posts import FSMPosts
+from tg_bot.utils.exceptions import PostInMailing
 from tg_bot.utils.paginator import get_current_page_from_dict, slice_dict
 from tg_bot.utils.process_posts import get_posts_by_group_dict, remove_post, load_post
 
@@ -24,7 +25,6 @@ async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, l
       await callback.message.edit_text(text=lexicon.view.posts.group(), reply_markup=keyboard)
    except TelegramBadRequest:
       await callback.answer()
-
 
 @router.callback_query(StateFilter(FSMPosts.view_post_groups))
 async def process_get_posts_by_group(callback: CallbackQuery, state: FSMContext,
@@ -69,33 +69,38 @@ async def process_paginator_posts(callback: CallbackQuery, state: FSMContext, le
 @router.callback_query(StateFilter(FSMPosts.remove_post))
 async def process_remove_post(callback: CallbackQuery, lexicon: TranslatorRunner,
                               session: AsyncSession, state: FSMContext):
-   await remove_post(session=session, group_id=callback.data)
+   try:
+      await remove_post(session=session, group_id=callback.data)
+      data = await state.get_data()
+      result_dict: dict[str, dict[str, str]] = data['result_dict']
+      current_page = data['current_page']
+      result_dict[str(current_page)].pop(callback.data)
+      special_symbol = '❌'
+      keyboard = await get_back_scroll_keyboard(result_dict[str(current_page)], lexicon, special_symbol)
 
-   data = await state.get_data()
-   result_dict: dict[str, dict[str, str]] = data['result_dict']
-   current_page = data['current_page']
-   result_dict[str(current_page)].pop(callback.data)
-   special_symbol = '❌'
-   keyboard = await get_back_scroll_keyboard(result_dict[str(current_page)], lexicon, special_symbol)
-
-   await callback.message.edit_text(text=lexicon.select.post(), reply_markup=keyboard)
-   await state.update_data(result_dict=result_dict)
-
+      await callback.message.edit_text(text=lexicon.select.post(), reply_markup=keyboard)
+      await state.update_data(result_dict=result_dict)
+   except PostInMailing:
+      await callback.answer(text=lexicon.post.inmailing())
 
 @router.callback_query(StateFilter(FSMPosts.view_post))
 async def view_post(callback: CallbackQuery, lexicon: TranslatorRunner,
                     session: AsyncSession, state: FSMContext, bot: Bot):
    group_id = callback.data
-   file_list, text = await load_post(session=session, media_id=group_id)
    keyboard = await get_back_keyboad(lexicon)
 
-   if file_list:
-      await bot.send_media_group(callback.message.chat.id, media=file_list)
-      await callback.message.answer(text = lexicon.back.to.post(), reply_markup=keyboard)
-   else:
-      await callback.message.edit_text(text=text, reply_markup=keyboard)
+   try:
+      file_list, text = await load_post(session=session, media_id=group_id)
 
-   await state.set_state(FSMPosts.back_to_posts)
+      if file_list:
+         await bot.send_media_group(callback.message.chat.id, media=file_list)
+         await callback.message.answer(text = lexicon.back.to.post(), reply_markup=keyboard)
+      else:
+         await callback.message.edit_text(text=text, reply_markup=keyboard)
+
+      await state.set_state(FSMPosts.back_to_posts)
+   except TelegramNetworkError:
+      await callback.message.edit_text(text=lexicon.file.notfound(), reply_markup=keyboard)
 
 
 @router.callback_query(F.data == 'back', StateFilter(FSMPosts.back_to_posts))

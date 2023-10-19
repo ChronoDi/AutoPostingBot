@@ -11,7 +11,6 @@ from tg_bot.states.mailing import FSMMailing
 
 router: Router = Router()
 
-
 @router.callback_query(StateFilter(FSMMailing.view_mailing))
 @router.callback_query(F.data == 'back', or_f(StateFilter(FSMMailing.group_changed),
                                               StateFilter(FSMMailing.time_edited),

@@ -52,3 +52,5 @@ take-user-info = Введите id пользователя.
 user-added = Пользователь добавлен в админы.
 admin-removed = Пользователь убран из админов.
 mailing-notfound = Рассылка не найдена.
+file-notfound = Файл не найден
+post-inmailing = Пост находится в рассылке.

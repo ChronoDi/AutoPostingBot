@@ -31,7 +31,6 @@ async def get_back_remove_keyboard(callback_names: dict[str: str], lexicon: Tran
                                 first_last_buttons=last_buttons, special_symbol=special_symbol)
 
 
-
 async def get_back_keyboad(lexicon: TranslatorRunner):
     return get_inline_keyboards(width=1, callback_names={'back' : lexicon.back()})
 

@@ -10,9 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tg_bot.keyboards.pagination import get_back_keyboad
 from tg_bot.states.mailing import FSMMailing
 from tg_bot.utils.process_mailing import change_date
-from tkq import db_source
 
-# from tg_bot.utils.taskiq import TaskiqController
 
 router: Router = Router()
 

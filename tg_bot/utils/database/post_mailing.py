@@ -1,10 +1,9 @@
 from sqlalchemy import select, and_
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from tg_bot.database.models import PostMailing
-from tg_bot.utils.exceptions import PostExist, PostNotFound
+from tg_bot.utils.exceptions import PostNotFound
 
 
 async def add_post_mailing(session: AsyncSession, mailing_id: int, post_id: int, order: int):

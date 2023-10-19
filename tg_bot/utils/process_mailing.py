@@ -11,7 +11,7 @@ from tg_bot.utils.database.mailing import get_all_mailing, get_mailing_by_id, se
 from tg_bot.utils.database.post import get_post, get_post_by_id, sync_get_post_by_id
 from tg_bot.utils.database.post_mailing import add_post_mailing, get_all_post_in_mailing, get_post_mailing_by_id, \
     get_post_mailing_by_mailing_id_order, commit_post_mailing, get_post_mailing_by_mailing_id_post_id, \
-    get_post_mailing_by_mailing_id_post_mailing_id, get_post_higher_order, remove_post, sync_remove_post_mailing, \
+    get_post_mailing_by_mailing_id_post_mailing_id, get_post_higher_order, remove_post, \
     sync_get_all_post_in_mailing
 from tg_bot.utils.exceptions import PostExist
 from tkq import db_source

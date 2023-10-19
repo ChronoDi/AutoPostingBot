@@ -1,4 +1,4 @@
-from aiogram import Router, Bot
+from aiogram import Router
 
 
 router: Router = Router()

@@ -1,9 +1,7 @@
 import enum
 import datetime
 
-from sqlalchemy import (
-    Column, Integer, String, JSON
-)
+from sqlalchemy import JSON
 from sqlalchemy import BigInteger, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

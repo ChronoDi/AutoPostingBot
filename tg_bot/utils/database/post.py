@@ -84,3 +84,8 @@ def sync_get_post_by_id(session: Session, post_id: int):
     posts = result.scalar_one_or_none()
 
     return posts
+
+
+async def remove(session: AsyncSession, post: Post):
+    await session.delete(post)
+    await session.commit()

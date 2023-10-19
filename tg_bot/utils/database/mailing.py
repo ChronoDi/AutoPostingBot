@@ -2,11 +2,10 @@ from datetime import datetime
 from typing import Union
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from tg_bot.database.models import Mailing
-from tg_bot.utils.uudi import take_uuid
 
 
 async def get_all_mailing(session: AsyncSession):

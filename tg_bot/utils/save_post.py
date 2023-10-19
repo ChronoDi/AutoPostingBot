@@ -29,6 +29,7 @@ async def save_file(session: AsyncSession, message: Message, bot: Bot,
 
     return media_id
 
+
 async def save_media_post(session: AsyncSession, message: Message,  bot: Bot, name_post: str):
     file: TelegramObject = get_file_by_type(message)
     file_attributes = file.mime_type.split('/')

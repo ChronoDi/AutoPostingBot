@@ -1,9 +1,13 @@
+import os
+
 import aiogram.types
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tg_bot.database.models import Post
-from tg_bot.utils.database.post import get_post, get_post_groups, get_posts_by_group
+from tg_bot.utils.database.post import get_post, get_post_groups, get_posts_by_group, remove
 from tg_bot.utils.database.url import remove_all_urls_by_post
+from tg_bot.utils.exceptions import FileNotFound, PostInMailing
 
 
 async def load_post(session: AsyncSession, media_id: str):
@@ -50,9 +54,17 @@ async def get_posts_by_group_dict(session: AsyncSession, group: str):
 
 
 async def remove_post(session: AsyncSession, group_id: str):
-    post: Post = await get_post(session, group_id)
-    await remove_all_urls_by_post(session, post)
-    await session.delete(post)
-    await session.commit()
+    try:
+        post: Post = await get_post(session, group_id)
+        await remove_all_urls_by_post(session, post)
+        await remove(session, post)
+    except IntegrityError:
+        raise PostInMailing
+
+
+async def check_files(post: Post):
+    for media in post.urls:
+        if not os.path.exists(media.url):
+            raise FileNotFound(post.name)
 
 

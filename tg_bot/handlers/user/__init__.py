@@ -1,1 +1,0 @@
-from tg_bot.handlers.user.root import router

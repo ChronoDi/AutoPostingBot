@@ -2,7 +2,7 @@ from typing import Union
 
 from aiogram.enums import ChatType
 from aiogram.filters import BaseFilter
-from aiogram.types import Message, TelegramObject, CallbackQuery
+from aiogram.types import Message, CallbackQuery
 
 
 class IsPrivateChat(BaseFilter):
