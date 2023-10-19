@@ -71,8 +71,9 @@ class Mailing(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
     name: Mapped[str] = mapped_column(nullable=False)
-    uid: Mapped[str] = mapped_column(nullable=False)
     count_posts: Mapped[int] = mapped_column(nullable=False, default=0)
+    is_sent: Mapped[bool] = mapped_column(nullable=False, default=False)
+    task_id: Mapped[int] = mapped_column(unique=False, nullable=True)
     group_id: Mapped[int] = mapped_column(ForeignKey('groups.tg_id'), unique=False)
     mailing_date: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     post_mailing: Mapped['PostMailing'] = relationship(back_populates='mailing')

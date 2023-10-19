@@ -6,12 +6,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from fluentogram import TranslatorRunner
 
+from tg_bot.filters.admins import IsAdmin
 from tg_bot.keyboards.main_menu import get_main_menu_keyboard
 from tg_bot.states.mailing import FSMMailing
 from tg_bot.states.main_menu import FSMMainMenu
 from tg_bot.states.posts import FSMPosts
 
 router: Router = Router()
+router.message.filter(IsAdmin())
+router.callback_query.filter(IsAdmin())
 
 
 @router.callback_query(F.data == 'back', or_f(StateFilter(FSMPosts.view_post_groups),

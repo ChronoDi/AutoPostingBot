@@ -7,14 +7,14 @@ from fluentogram import TranslatorRunner
 
 from tg_bot.keyboards.pagination import get_add_back_remove_keyboard
 from tg_bot.states.mailing import FSMMailing
-from tg_bot.utils.paginator import get_current_page
+from tg_bot.utils.paginator import get_current_page_from_dict
 
 router: Router = Router()
 
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMMailing.view_mailing))
 async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
    is_next = True if callback.data == 'next' else False
-   posts_group: dict[str: str] = await get_current_page(state, is_next)
+   posts_group: dict[str: str] = await get_current_page_from_dict(state, is_next)
    keyboard = await get_add_back_remove_keyboard(posts_group, lexicon)
 
    try:

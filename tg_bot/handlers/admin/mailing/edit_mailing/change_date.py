@@ -28,10 +28,14 @@ async def process_edit_time(callback: CallbackQuery, lexicon: TranslatorRunner,
     minute = int(data['minute'])
     mailing_id = int(data['mailing_id'])
 
-    date = datetime(year, month, day, hour, minute)
-    await change_date(session, mailing_id, date)
-    await db_source.reschedule_task(mailing_id, new_time=date)
-    keyboard = await get_back_keyboad(lexicon)
-    await callback.message.edit_text(text=lexicon.date.edited(), reply_markup=keyboard)
-    await state.set_state(FSMMailing.time_edited)
+    try:
+        date = datetime(year, month, day, hour, minute)
+        await change_date(session, mailing_id, date)
+        keyboard = await get_back_keyboad(lexicon)
+        await callback.message.edit_text(text=lexicon.date.edited(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.time_edited)
+    except AttributeError:
+        keyboard = await get_back_keyboad(lexicon)
+        await callback.message.edit_text(text=lexicon.mailing.notfound(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.error_state)
 

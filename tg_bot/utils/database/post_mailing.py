@@ -79,3 +79,20 @@ async def get_post_higher_order(session: AsyncSession, mailing_id: int, start_or
     list_posts = result.scalars().all()
 
     return list_posts
+
+
+def sync_remove_post_mailing(session: Session, mailing_id: int):
+    list_posts = session.execute(select(PostMailing).
+                                 where(PostMailing.mailing_id == mailing_id)).scalars().all()
+
+    [session.delete(post) for post in list_posts]
+    session.commit()
+
+
+def sync_get_all_post_in_mailing(session: Session, mailing_id: int):
+    result = session.execute(select(PostMailing)
+                                   .where(PostMailing.mailing_id == mailing_id)
+                                   .order_by(PostMailing.order))
+    list_posts = result.scalars().all()
+
+    return list_posts

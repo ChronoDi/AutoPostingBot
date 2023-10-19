@@ -15,7 +15,8 @@ router: Router = Router()
 
 @router.callback_query(F.data == 'back', or_f(StateFilter(FSMMailing.create_mailing),
                                               StateFilter(FSMMailing.view_mailing_to_remove),
-                                              StateFilter(FSMMailing.view_mailing_menu)))
+                                              StateFilter(FSMMailing.view_mailing_menu),
+                                              StateFilter(FSMMailing.error_state)))
 @router.callback_query(F.data == 'mailing', StateFilter(FSMMainMenu.main_menu))
 async def get_mailing(callback: CallbackQuery, session: AsyncSession,
                     lexicon: TranslatorRunner, state: FSMContext):

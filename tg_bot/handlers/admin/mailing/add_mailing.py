@@ -13,8 +13,8 @@ from tg_bot.keyboards.pagination import get_next_keyboard
 from tg_bot.states.mailing import FSMMailing
 from tg_bot.utils.cache.cache_access import CacheAccess
 from tg_bot.utils.calendar import get_current_time, change_time, try_get_future_date
-from tg_bot.utils.database.mailing import create_mailing
-from tg_bot.utils.paginator import slice_dict, get_current_page
+from tg_bot.utils.database.mailing import create_mailing, add_task_id
+from tg_bot.utils.paginator import slice_dict, get_current_page_from_dict
 from tg_bot.utils.process_group import get_group_dict
 from tg_bot.utils.sender import send_mailing
 from tkq import db_source
@@ -149,7 +149,7 @@ async def process_select_time(callback: CallbackQuery, lexicon: TranslatorRunner
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMMailing.take_group))
 async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
    is_next = True if callback.data == 'next' else False
-   posts_group: dict[str: str] = await get_current_page(state, is_next)
+   posts_group: dict[str: str] = await get_current_page_from_dict(state, is_next)
    keyboard = await get_groups_keyboard(posts_group)
 
    try:
@@ -179,12 +179,14 @@ async def process_mailing_name(message: Message, session: AsyncSession, state: F
 
     date, mailing_id = await create_mailing(year=year, month=month, day=day, hour=hour,
                                 minute=minute, group_id=group_id, name=name, session=session)
-    await db_source.add_task(
+
+    task_id = await db_source.add_task(
         task=send_mailing.kicker().with_labels(),
         time=date,
         mailing_id=mailing_id,
-        group_id=group_id
     )
+
+    await add_task_id(session, mailing_id, task_id)
     keyboard = await get_to_mailing_keyboard(lexicon)
     await message.answer(text=lexicon.create.mailing(name=name, date=date), reply_markup=keyboard)
     await state.set_state(FSMMailing.create_mailing)

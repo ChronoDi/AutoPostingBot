@@ -1,6 +1,6 @@
 import json, pytz
-from datetime import datetime
-from typing import List, Any
+from datetime import datetime, timedelta
+from typing import List, Any, Union, Coroutine
 
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
@@ -19,18 +19,22 @@ class DbScheduleSource(ScheduleSource):
         async with AsyncSession(self.engine) as session:
             result = await session.execute(select(DbSchedule))
             schedules = result.scalars().all()
+            list_tasks: list[ScheduledTask] = []
 
-            return [
-                ScheduledTask(
-                    source=self,
-                    task_name=s.task_name,
-                    args=json.loads(s.args),
-                    kwargs=json.loads(s.kwargs),
-                    labels={"_sched_id": s.id, **json.loads(s.labels)},
-                    time=s.time
+            for s in schedules:
+                list_tasks.append(
+                    ScheduledTask(
+                        source=self,
+                        task_name=s.task_name,
+                        args=json.loads(s.args),
+                        kwargs=json.loads(s.kwargs),
+                        labels={"_sched_id": s.id, **json.loads(s.labels)},
+                        time=s.time
+                    )
                 )
-                for s in schedules
-            ]
+
+            return list_tasks
+
 
     async def add_task(
             self,
@@ -38,7 +42,7 @@ class DbScheduleSource(ScheduleSource):
             time: datetime,
             *args: Any,
             **kwargs: Any
-    ) -> None:
+    ) -> int:
         schedule = DbSchedule(
             task_name=task.task_name,
             args=json.dumps(list(args)),
@@ -49,13 +53,18 @@ class DbScheduleSource(ScheduleSource):
         async with AsyncSession(self.engine) as session:
             session.add(schedule)
             await session.commit()
+            await session.refresh(schedule)
 
-    async def remove_schedule(self, schedule_id: int) -> None:
+        return schedule.id
+
+
+    async def remove_schedule(self, task_id: int) -> None:
         async with AsyncSession(self.engine) as session:
             await session.execute(
-                delete(DbSchedule).where(DbSchedule.id == schedule_id)
+                delete(DbSchedule).where(DbSchedule.id == task_id)
             )
             await session.commit()
+
 
     async def post_send(self, task: ScheduledTask) -> None:
         schedule_id = task.labels.get("_sched_id")
@@ -72,10 +81,14 @@ class DbScheduleSource(ScheduleSource):
     async def reschedule_task(self, schedule_id: int, new_time: datetime) -> None:
 
         async with AsyncSession(self.engine) as session:
-            schedule = await session.get(DbSchedule, schedule_id)
+            result = await session.execute(select(DbSchedule).
+                                           where(DbSchedule.id == schedule_id))
+
+            schedule = result.scalar_one_or_none()
+
             if not schedule:
                 raise ValueError(f"Schedule {schedule_id} not found")
 
-            schedule.time = new_time
+            schedule.time = new_time.astimezone(pytz.UTC).replace(tzinfo=None)
             session.add(schedule)
             await session.commit()

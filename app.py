@@ -2,7 +2,6 @@ import asyncio
 import logging
 
 from aiogram import Dispatcher
-from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio import Redis
 from fluentogram import TranslatorHub
@@ -15,6 +14,8 @@ from tg_bot.meddleware import DbSessionMiddleware
 from tg_bot.handlers import router
 from tg_bot.utils.cache.cache_access import CacheAccess
 from tg_bot.utils.cache.groups import init_groups
+from tg_bot.utils.process_mailing import init_mailing
+from tg_bot.utils.process_user import init_admins
 from tkq import broker
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,6 @@ redis: Redis = Redis(host=config.redis.host,
                      username=config.redis.user,
                      db=config.redis.db)
 dp: Dispatcher = Dispatcher(storage=RedisStorage(redis))
-# dp: Dispatcher = Dispatcher(storage=MemoryStorage())
 
 
 @dp.startup()
@@ -52,6 +52,7 @@ async def main() -> None:
 
     await redis.flushdb()
     await init_groups(cache, session_maker, bot)
+    await init_admins(cache=cache, session_pool=session_maker)
     await bot.delete_webhook(drop_pending_updates=True)
 
     try:

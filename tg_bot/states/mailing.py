@@ -24,3 +24,4 @@ class FSMMailing(StatesGroup):
     view_posts = State()
     post_added = State()
     remove_post = State()
+    error_state = State()

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tg_bot.keyboards.pagination import get_add_back_remove_keyboard, get_back_scroll_keyboard, get_back_keyboad
 from tg_bot.states.mailing import FSMMailing
 from tg_bot.utils.exceptions import PostExist
-from tg_bot.utils.paginator import slice_dict, get_current_page
+from tg_bot.utils.paginator import slice_dict, get_current_page_from_dict
 from tg_bot.utils.process_mailing import add_post_to_mailing, get_posts_dict, change_mailing_orders
 from tg_bot.utils.process_posts import get_post_groups_dict, get_posts_by_group_dict
 
@@ -23,12 +23,18 @@ async def process_add_post(callback: CallbackQuery, lexicon: TranslatorRunner,
                             state: FSMContext, session: AsyncSession):
     data = await state.get_data()
     mailing_id = int(data['mailing_id'])
-    post_dict = await get_posts_dict(session, mailing_id)
-    result_dict, num_pages = slice_dict(post_dict, num_elements=18)
-    await state.update_data(result_dict=result_dict, num_pages=num_pages, current_page=0)
-    keyboard = await get_add_back_remove_keyboard(lexicon=lexicon, callback_names=result_dict['0'], width=3)
-    await callback.message.edit_text(text=lexicon.posts.list(), reply_markup=keyboard)
-    await state.set_state(FSMMailing.add_post)
+    try:
+        post_dict = await get_posts_dict(session, mailing_id)
+        result_dict, num_pages = slice_dict(post_dict, num_elements=18)
+        await state.update_data(result_dict=result_dict, num_pages=num_pages, current_page=0)
+        keyboard = await get_add_back_remove_keyboard(lexicon=lexicon, callback_names=result_dict['0'], width=3)
+        await callback.message.edit_text(text=lexicon.posts.list(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.add_post)
+    except AttributeError:
+        keyboard = await get_back_keyboad(lexicon)
+        await callback.message.edit_text(text=lexicon.mailing.notfound(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.error_state)
+
 
 
 @router.callback_query(or_f(F.data.contains('up'), F.data.contains('down')),
@@ -69,7 +75,7 @@ async def view_posts_group(callback: CallbackQuery, lexicon: TranslatorRunner,
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMMailing.add_post))
 async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
     is_next = True if callback.data == 'next' else False
-    posts_group: dict[str: str] = await get_current_page(state, is_next)
+    posts_group: dict[str: str] = await get_current_page_from_dict(state, is_next)
     keyboard = await get_add_back_remove_keyboard(posts_group, lexicon, width=3)
 
     try:
@@ -94,7 +100,7 @@ async def process_get_posts_by_group(callback: CallbackQuery, state: FSMContext,
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMMailing.view_posts))
 async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
     is_next = True if callback.data == 'next' else False
-    posts_group: dict[str: str] = await get_current_page(state, is_next)
+    posts_group: dict[str: str] = await get_current_page_from_dict(state, is_next)
     keyboard = await get_back_scroll_keyboard(posts_group, lexicon)
 
     try:
@@ -117,4 +123,8 @@ async def process_select_post(callback: CallbackQuery, state: FSMContext,
         await state.set_state(FSMMailing.post_added)
     except PostExist:
         await callback.answer(text=lexicon.post.exist())
+    except AttributeError:
+        keyboard = await get_back_keyboad(lexicon)
+        await callback.message.edit_text(text=lexicon.mailing.notfound(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.error_state)
 

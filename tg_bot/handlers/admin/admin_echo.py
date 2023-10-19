@@ -3,7 +3,8 @@ from pprint import pprint
 
 from aiogram import Router, F, Bot, types
 from aiogram.filters import or_f
-from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tg_bot.filters.admins import IsAdmin
@@ -35,12 +36,13 @@ router.message.filter(IsAdmin())
 #     await save_video_note(session, message, bot)
 
 
-# @router.message()
-# async def get_post(message: Message, session: AsyncSession, bot: Bot):
-#     file_list, text = await load_post(session=session, group_id=message.text)
-#
-#     if file_list:
-#         await bot.send_media_group(message.chat.id, media=file_list)
-#     else:
-#         await bot.send_message(message.chat.id, text=text)
+@router.message()
+async def get_post(message: Message, session: AsyncSession, state: FSMContext):
+    state = await state.get_state()
+    await message.answer(text=f'{message.text} + {str(state)}')
 
+
+@router.callback_query
+async def get_callback(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
+    state = await state.get_state()
+    await callback.message.answer(text=f'{callback.data} + {str(state)}')

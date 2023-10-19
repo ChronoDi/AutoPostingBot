@@ -1,4 +1,7 @@
-start = Привет, { $username }
+start = Привет, { $username }.
+        Чтобы посмотреть свой id, введи команду '/id'
+user-id = Твой id:
+          { $id }
 add = Добавить
 remove = Удалить
 back = Назад
@@ -37,5 +40,15 @@ posts-list = Список постов в рассылке:
 post-to-mailing = Выберите пост для добавления рассылку:
 post-exist = Такой пост уже добавлен в рассылку.
 change-order = Измените порядок постов:
-
-
+view-admins = Список админов:
+user-info = Информация о пользователе:
+            Имя - { $first_name }
+            Фамилия - { $second_name }
+            Username - { $username }
+            Уровень доступа - { $role }
+            Зарегистрирован - { $date }
+user-notfound = Пользователь не найден.
+take-user-info = Введите id пользователя.
+user-added = Пользователь добавлен в админы.
+admin-removed = Пользователь убран из админов.
+mailing-notfound = Рассылка не найдена.

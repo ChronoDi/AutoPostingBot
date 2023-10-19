@@ -1,12 +1,11 @@
 from aiogram import Router
 
-from tg_bot.handlers.commands import start, chats, posts, menu, mailing
-
+from tg_bot.handlers.commands import start, menu, admins, id, msg
 
 router = Router()
 
 router.include_router(start.router)
+router.include_router(admins.router)
 router.include_router(menu.router)
-router.include_router(chats.router)
-router.include_router(posts.router)
-router.include_router(mailing.router)
+router.include_router(id.router)
+router.include_router(msg.router)

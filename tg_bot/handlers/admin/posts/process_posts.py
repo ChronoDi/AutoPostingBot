@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tg_bot.keyboards.pagination import get_add_back_keyboard, get_back_remove_keyboard, get_back_keyboad, \
    get_back_scroll_keyboard
 from tg_bot.states.posts import FSMPosts
-from tg_bot.utils.paginator import get_current_page, slice_dict
+from tg_bot.utils.paginator import get_current_page_from_dict, slice_dict
 from tg_bot.utils.process_posts import get_posts_by_group_dict, remove_post, load_post
 
 router: Router = Router()
@@ -17,7 +17,7 @@ router: Router = Router()
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMPosts.view_post_groups))
 async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
    is_next = True if callback.data == 'next' else False
-   posts_group: dict[str: str] = await get_current_page(state, is_next)
+   posts_group: dict[str: str] = await get_current_page_from_dict(state, is_next)
    keyboard = await get_add_back_keyboard(posts_group, lexicon)
 
    try:
@@ -57,7 +57,7 @@ async def process_paginator_posts(callback: CallbackQuery, state: FSMContext, le
    is_next = True if callback.data == 'next' else False
    current_state = await state.get_state()
    special_symbol = '❌' if current_state == FSMPosts.remove_post else None
-   posts: dict[str: str] = await get_current_page(state, is_next)
+   posts: dict[str: str] = await get_current_page_from_dict(state, is_next)
    keyboard = await get_back_scroll_keyboard(posts, lexicon, special_symbol)
 
    try:

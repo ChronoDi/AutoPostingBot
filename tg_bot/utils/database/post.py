@@ -77,3 +77,10 @@ async def get_post_by_id(session: AsyncSession, post_id: int):
     posts = result.scalar_one_or_none()
 
     return posts
+
+
+def sync_get_post_by_id(session: Session, post_id: int):
+    result = session.execute(select(Post).where(Post.id == post_id))
+    posts = result.scalar_one_or_none()
+
+    return posts

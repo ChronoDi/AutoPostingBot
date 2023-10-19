@@ -6,9 +6,9 @@ from aiogram.types import CallbackQuery
 from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tg_bot.keyboards.pagination import get_back_scroll_keyboard
+from tg_bot.keyboards.pagination import get_back_scroll_keyboard, get_back_keyboad
 from tg_bot.states.mailing import FSMMailing
-from tg_bot.utils.paginator import slice_dict, get_current_page
+from tg_bot.utils.paginator import slice_dict, get_current_page_from_dict
 from tg_bot.utils.process_mailing import get_posts_remove_dict, remove_post_from_mailing
 
 router: Router = Router()
@@ -30,7 +30,7 @@ async def process_remove_post(callback: CallbackQuery, lexicon: TranslatorRunner
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMMailing.remove_post))
 async def process_paginator_posts(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
     is_next = True if callback.data == 'next' else False
-    posts_group: dict[str: str] = await get_current_page(state, is_next)
+    posts_group: dict[str: str] = await get_current_page_from_dict(state, is_next)
     keyboard = await get_back_scroll_keyboard(posts_group, lexicon, width=1, special_symbol='❌')
 
     try:
@@ -46,7 +46,11 @@ async def remove_post(callback: CallbackQuery, state: FSMContext,
     mailing_id = int(data['mailing_id'])
     result_dict = data['result_dict']
     current_page = str(data['current_page'])
-    await remove_post_from_mailing(session, mailing_id, int(callback.data), result_dict[current_page])
-    keyboard = await get_back_scroll_keyboard(result_dict[current_page], lexicon, width=1, special_symbol='❌')
-    await callback.message.edit_text(text=lexicon.select.post(), reply_markup=keyboard)
-
+    try:
+        await remove_post_from_mailing(session, mailing_id, int(callback.data), result_dict[current_page])
+        keyboard = await get_back_scroll_keyboard(result_dict[current_page], lexicon, width=1, special_symbol='❌')
+        await callback.message.edit_text(text=lexicon.select.post(), reply_markup=keyboard)
+    except AttributeError:
+        keyboard = await get_back_keyboad(lexicon)
+        await callback.message.edit_text(text=lexicon.mailing.notfound(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.error_state)

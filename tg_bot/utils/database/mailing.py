@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Union
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import Session
@@ -20,7 +22,6 @@ async def create_mailing(year: int, month: int, day: int, hour: int, minute: int
         name=name,
         mailing_date=datetime(year, month, day, hour, minute),
         group_id=group_id,
-        uid=take_uuid()
     )
 
     session.add(mailing)
@@ -49,6 +50,8 @@ async def set_time(session: AsyncSession, mailing_id: int, new_date: datetime):
     mailing.mailing_date = new_date
     await session.commit()
 
+    return mailing.task_id
+
 
 async def change_post_count(session: AsyncSession, mailing_id, is_increase: bool = True):
     result = await session.execute(select(Mailing).where(Mailing.id == mailing_id))
@@ -61,6 +64,31 @@ async def change_post_count(session: AsyncSession, mailing_id, is_increase: bool
 async def remove_mailing(session: AsyncSession, mailing_id: int):
     mailing = await get_mailing_by_id(session, mailing_id)
     await session.delete(mailing)
+    await session.commit()
+
+    return mailing.task_id
+
+
+def sync_get_mailing_by_id(session: Session, mailing_id: int) -> Union[None, Mailing]:
+    mailing: Mailing = session.execute(select(Mailing).where(Mailing.id == mailing_id)).scalar_one_or_none()
+
+    return mailing
+
+
+def sync_delete_mailing(session: Session, mailing: Mailing) -> None:
+    session.delete(mailing)
+    session.commit()
+
+
+def mark_sent(session: Session, mailing: Mailing) -> None:
+    mailing.is_sent = True
+    session.add(mailing)
+    session.commit()
+
+
+async def add_task_id(session: AsyncSession, mailing_id: int, task_id: int):
+    mailing: Mailing = await get_mailing_by_id(session, mailing_id)
+    mailing.task_id = task_id
     await session.commit()
 
 

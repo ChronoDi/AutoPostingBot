@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from tg_bot.keyboards.pagination import get_back_scroll_keyboard
 from tg_bot.states.mailing import FSMMailing
-from tg_bot.utils.paginator import slice_dict, get_current_page
+from tg_bot.utils.paginator import slice_dict, get_current_page_from_dict
 from tg_bot.utils.process_mailing import get_mailing_dict, process_remove_mailing
 from tkq import db_source
 
@@ -31,7 +31,7 @@ async def view_mailing_to_remove(callback: CallbackQuery, state: FSMContext,
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMMailing.view_mailing_to_remove))
 async def process_paginator_mailing(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
    is_next = True if callback.data == 'next' else False
-   mailing_dict: dict[str: str] = await get_current_page(state, is_next)
+   mailing_dict: dict[str: str] = await get_current_page_from_dict(state, is_next)
    keyboard = await get_back_scroll_keyboard(mailing_dict, lexicon, special_symbol='❌')
 
    try:
@@ -46,9 +46,8 @@ async def remove_mailing(callback: CallbackQuery, state: FSMContext,
     data = await state.get_data()
     result_dict = data['result_dict']
     current_page = str(data['current_page'])
-    await process_remove_mailing(session, int(callback.data), result_dict[current_page])
-    # await taskiq_controller.remove_mailing(str(callback.data))
-    await db_source.remove_schedule(mail_id=int(callback.data))
+    task_id = await process_remove_mailing(session, int(callback.data), result_dict[current_page])
+    await db_source.remove_schedule(task_id)
     await state.update_data(result_dict=result_dict)
     keyboard = await get_back_scroll_keyboard(result_dict[current_page], lexicon, width=1, special_symbol='❌')
     await callback.message.edit_text(text=lexicon.select.mailing(), reply_markup=keyboard)

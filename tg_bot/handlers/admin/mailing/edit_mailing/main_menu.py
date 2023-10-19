@@ -6,6 +6,7 @@ from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tg_bot.keyboards.mailing import get_mailing_menu
+from tg_bot.keyboards.pagination import get_back_keyboad
 from tg_bot.states.mailing import FSMMailing
 
 router: Router = Router()
@@ -26,8 +27,14 @@ async def process_select_mailing(callback: CallbackQuery, lexicon: TranslatorRun
         data = await state.get_data()
         mailing_id = int(data['mailing_id'])
 
-    keyboard = await get_mailing_menu(lexicon, session, mailing_id)
-    await callback.message.edit_text(text=lexicon.main.menu(), reply_markup=keyboard)
-    await state.set_state(FSMMailing.view_mailing_menu)
+    try:
+        keyboard = await get_mailing_menu(lexicon, session, mailing_id)
+        await callback.message.edit_text(text=lexicon.main.menu(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.view_mailing_menu)
+    except AttributeError:
+        keyboard = await get_back_keyboad(lexicon)
+        await callback.message.edit_text(text=lexicon.mailing.notfound(), reply_markup=keyboard)
+        await state.set_state(FSMMailing.error_state)
+
 
 

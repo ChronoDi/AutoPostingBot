@@ -31,8 +31,17 @@ async def get_back_remove_keyboard(callback_names: dict[str: str], lexicon: Tran
                                 first_last_buttons=last_buttons, special_symbol=special_symbol)
 
 
+
 async def get_back_keyboad(lexicon: TranslatorRunner):
     return get_inline_keyboards(width=1, callback_names={'back' : lexicon.back()})
+
+
+async def get_only_add_back_keyboad(lexicon: TranslatorRunner):
+    return get_inline_keyboards(width=2, callback_names={'add' : lexicon.add(), 'back' : lexicon.back()})
+
+
+async def get_only_remove_back_keyboad(lexicon: TranslatorRunner):
+    return get_inline_keyboards(width=2, callback_names={'remove' : lexicon.remove(), 'back' : lexicon.back()})
 
 
 async def get_back_scroll_keyboard(callback_names: dict[str: str], lexicon: TranslatorRunner,
@@ -42,8 +51,17 @@ async def get_back_scroll_keyboard(callback_names: dict[str: str], lexicon: Tran
     return get_inline_keyboards(width=width, callback_names=callback_names,
                                 first_last_buttons=last_buttons, special_symbol=special_symbol)
 
+
 async def get_next_keyboard():
     last_buttons = {'next': '>>'}
 
     return get_inline_keyboards(width=1, first_last_buttons=last_buttons)
+
+
+async def get_add_scroll_keyboard(callback_names: dict[str: str], lexicon: TranslatorRunner,
+                                   special_symbol: str = None, width: int = 1):
+    last_buttons = {'previous': '<<', 'add': lexicon.add(), 'next': '>>'}
+
+    return get_inline_keyboards(width=width, callback_names=callback_names,
+                                first_last_buttons=last_buttons, special_symbol=special_symbol)
 

@@ -1,5 +1,6 @@
 import taskiq_aiogram
 from taskiq import TaskiqScheduler
+from taskiq.scheduler import only_unique
 from taskiq_redis import ListQueueBroker
 
 from tg_bot.database.base import engine
@@ -24,5 +25,6 @@ sched = TaskiqScheduler(
     broker,
     sources=[db_source],
     refresh_delay=20,
+    merge_func=only_unique
 )
 

@@ -1,16 +1,20 @@
 import datetime
+from typing import Union
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import Session
 
 from tg_bot.database.models import Mailing, Group, Post, PostMailing
 from tg_bot.utils.database.group import get_group_by_tg_id
 from tg_bot.utils.database.mailing import get_all_mailing, get_mailing_by_id, set_group, set_time, change_post_count, \
-    remove_mailing
-from tg_bot.utils.database.post import get_post, get_post_by_id
+    remove_mailing, sync_get_mailing_by_id, sync_delete_mailing, mark_sent
+from tg_bot.utils.database.post import get_post, get_post_by_id, sync_get_post_by_id
 from tg_bot.utils.database.post_mailing import add_post_mailing, get_all_post_in_mailing, get_post_mailing_by_id, \
     get_post_mailing_by_mailing_id_order, commit_post_mailing, get_post_mailing_by_mailing_id_post_id, \
-    get_post_mailing_by_mailing_id_post_mailing_id, get_post_higher_order, remove_post
+    get_post_mailing_by_mailing_id_post_mailing_id, get_post_higher_order, remove_post, sync_remove_post_mailing, \
+    sync_get_all_post_in_mailing
 from tg_bot.utils.exceptions import PostExist
+from tkq import db_source
 
 
 async def get_mailing_dict(session: AsyncSession):
@@ -37,7 +41,8 @@ async def change_group(session: AsyncSession, mailing_id: int, new_group_id: int
 
 
 async def change_date(session: AsyncSession, mailing_id: int, date: datetime):
-    await set_time(session, mailing_id, date)
+    task_id = await set_time(session, mailing_id, date)
+    await db_source.reschedule_task(task_id, date)
 
 
 async def get_date(session: AsyncSession, mailing_id: int) -> datetime:
@@ -127,19 +132,57 @@ async def remove_post_from_mailing(session: AsyncSession, mailing_id: int,
     post_dict.pop(str(post_mailing_id))
 
 
-async def process_remove_mailing(session: AsyncSession, mailing_id: int, mailing_dict: dict[str, str] = None) -> None:
+async def remove_posts_from_mailing(session: AsyncSession, mailing_id: int,):
     list_posts: list[PostMailing] = await get_all_post_in_mailing(session, mailing_id)
 
     if list_posts:
         for post in list_posts:
             await remove_post(session, post)
 
-    await remove_mailing(session, mailing_id)
+
+async def process_remove_mailing(session: AsyncSession, mailing_id: int, mailing_dict: dict[str, str] = None) -> int:
+    await remove_posts_from_mailing(session, mailing_id)
+    task_id = await remove_mailing(session, mailing_id)
 
     if mailing_dict:
         mailing_dict.pop(str(mailing_id))
 
+    return task_id
 
 
+def sync_get_list_media_group(session: Session, mailing_id: int) -> list[str]:
+    mailing: Mailing = sync_get_mailing_by_id(session, mailing_id)
+    list_media_groups: list[str] = []
+
+    if mailing:
+        list_posts: list[PostMailing] = sync_get_all_post_in_mailing(session, mailing_id)
+        list_media_groups = []
+
+        for post in list_posts:
+            post: Post = sync_get_post_by_id(session, post.post_id)
+            list_media_groups.append(post.group_id)
+
+        sync_get_all_post_in_mailing(session, mailing_id)
+        sync_delete_mailing(session, mailing)
+
+    return list_media_groups
 
 
+#Тот самый костыль, который защищает от двойной отправки.
+def check_sending(session: Session, mailing_id: int) -> Union[Mailing, None]:
+    mailing: Mailing = sync_get_mailing_by_id(session, mailing_id)
+
+    if mailing and not mailing.is_sent:
+        mark_sent(session, mailing)
+        return mailing
+
+    return None
+
+
+async def init_mailing(session_pool: async_sessionmaker) -> None:
+    async with session_pool() as session:
+        list_mailing: list[Mailing] = await get_all_mailing(session)
+
+        for mailing in list_mailing:
+            if mailing.mailing_date < datetime.datetime.now():
+                await remove_mailing(session, mailing.id)
