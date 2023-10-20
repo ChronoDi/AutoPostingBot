@@ -64,3 +64,11 @@ async def get_add_scroll_keyboard(callback_names: dict[str: str], lexicon: Trans
     return get_inline_keyboards(width=width, callback_names=callback_names,
                                 first_last_buttons=last_buttons, special_symbol=special_symbol)
 
+
+async def get_refresh_back_remove_keyboard(callback_names: dict[str, str] | None, lexicon: TranslatorRunner, width: int = 1):
+    second_last_buttons = {'refresh' : lexicon.refresh(), 'back' : lexicon.back(), 'remove' : lexicon.remove()}
+    first_last_buttons = {'previous' : '<<', 'next' : '>>'}
+
+    return get_inline_keyboards(width=width, callback_names=callback_names,
+                                first_last_buttons=first_last_buttons, second_last_buttons=second_last_buttons)
+

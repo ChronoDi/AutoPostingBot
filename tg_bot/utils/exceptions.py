@@ -14,3 +14,9 @@ class FileNotFound(Exception):
 
 class PostInMailing(Exception):
     pass
+
+
+class MailingToChatExist(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)

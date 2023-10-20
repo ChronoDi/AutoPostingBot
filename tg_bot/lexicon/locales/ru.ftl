@@ -5,11 +5,13 @@ user-id = Твой id:
 add = Добавить
 remove = Удалить
 back = Назад
+refresh = Обновить
 ready = Готово
 error-input = Неверный вывод
 wrong-date = Установленая дата в прошлом.
 view-posts = Просмотреть посты
 view-mailing = Просмотреть рассылки
+view-groups = Просмотреть группы
 main-menu = Выберите меню:
 back-to-post = Вернуться к постам
 view-posts-group = Выберите группу постов:
@@ -54,3 +56,11 @@ admin-removed = Пользователь убран из админов.
 mailing-notfound = Рассылка не найдена.
 file-notfound = Файл не найден
 post-inmailing = Пост находится в рассылке.
+chat-error = Бот был кикнут из группы { $title }, хотя туда существует рассылка.
+group-info = Информация о группе:
+
+             Название: { $name }
+             Тип группы: { $type }
+             id: { $tg_id }
+group_inmailing = В группу создана рассылка
+

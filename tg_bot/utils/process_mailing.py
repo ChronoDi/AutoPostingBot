@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from tg_bot.database.models import Mailing, Group, Post, PostMailing
 from tg_bot.utils.database.group import get_group_by_tg_id
 from tg_bot.utils.database.mailing import get_all_mailing, get_mailing_by_id, set_group, set_time, change_post_count, \
-    remove_mailing, sync_get_mailing_by_id, sync_delete_mailing, mark_sent
+    remove_mailing, sync_get_mailing_by_id, sync_delete_mailing, mark_sent, get_mailing_by_group_id
 from tg_bot.utils.database.post import get_post, get_post_by_id, sync_get_post_by_id
 from tg_bot.utils.database.post_mailing import add_post_mailing, get_all_post_in_mailing, get_post_mailing_by_id, \
     get_post_mailing_by_mailing_id_order, commit_post_mailing, get_post_mailing_by_mailing_id_post_id, \
@@ -186,3 +186,9 @@ async def init_mailing(session_pool: async_sessionmaker) -> None:
         for mailing in list_mailing:
             if mailing.mailing_date < datetime.datetime.now():
                 await remove_mailing(session, mailing.id)
+
+
+async def get_mailing_by_group(session: AsyncSession, group_id: int) -> bool:
+    list_groups = await get_mailing_by_group_id(session, group_id)
+
+    return True if list_groups else False

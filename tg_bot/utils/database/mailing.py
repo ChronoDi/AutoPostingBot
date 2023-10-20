@@ -91,3 +91,11 @@ async def add_task_id(session: AsyncSession, mailing_id: int, task_id: int):
     await session.commit()
 
 
+async def get_mailing_by_group_id(session: AsyncSession, group_id: int):
+    result = await session.execute(select(Mailing).where(Mailing.group_id == group_id))
+    mailing: list[Mailing] = result.scalars().all()
+
+    return mailing
+
+
+

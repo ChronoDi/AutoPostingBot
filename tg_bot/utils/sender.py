@@ -2,6 +2,7 @@ import datetime
 from asyncio import sleep
 from datetime import timedelta
 
+from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from bot import bot
@@ -53,7 +54,7 @@ async def send_mailing(mailing_id: int) -> None:
         mailing: Mailing = await session.run_sync(check_sending, mailing_id)
 
         if mailing:
-            if mailing.mailing_date + timedelta(minutes=20) >= datetime.datetime.now():
+            if mailing.mailing_date + timedelta(minutes=60) >= datetime.datetime.now():
                 list_posts: list[PostMailing] = await get_all_post_in_mailing(session, mailing_id)
                 list_media_groups: list[str] = []
 
@@ -76,6 +77,12 @@ async def send_mailing(mailing_id: int) -> None:
 
                         await sleep(1)
                 except FileNotFound as e:
-                    await inform_admins(session, mailing, e.message)
+                    text: str = f'Рассылка "{mailing.name}" на дату "{mailing.mailing_date}" не отправилась, ' \
+                                f'так как не были найдены все файлы в посте "{e.message}"'
+                    await inform_admins(session=session, text=text)
+                except TelegramForbiddenError:
+                    text: str = f'Рассылка "{mailing.name}" на дату "{mailing.mailing_date}" не отправилась, ' \
+                                f'так как бот был исключен из группы "{mailing.group_id}"'
+                    await inform_admins(session=session, text=text)
 
             await process_remove_mailing(session, mailing_id)

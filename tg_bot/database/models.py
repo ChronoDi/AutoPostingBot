@@ -62,6 +62,7 @@ class Group(Base):
     tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, primary_key=True)
     type: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str] = mapped_column(nullable=False)
+    is_active: Mapped[bool] = mapped_column(nullable=False)
 
 
 class Mailing(Base):

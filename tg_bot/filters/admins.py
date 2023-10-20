@@ -20,10 +20,8 @@ class IsAdmin(BaseFilter):
             access: str = '1' if message.from_user.id in admins_id else '0'
             await cache.add_to_dict(cache_names.ADMINS, str(message.from_user.id), access)
 
-            print(f'is_admin_base: {message.from_user.id in admins_id}')
             return message.from_user.id in admins_id
 
-        print(f'is_admin_cache: {cache_admins[str(message.from_user.id)] == "1"}')
         return cache_admins[str(message.from_user.id)] == '1'
 
 
@@ -31,5 +29,4 @@ class IsSuperAdmin(BaseFilter):
     keyword = 'is_super_admin'
 
     async def __call__(self, message: Message, session: AsyncSession, cache: CacheAccess) -> bool:
-        print(f'is_super_admin: {message.from_user.id in config.tg_bot.super_admin}')
         return message.from_user.id in config.tg_bot.super_admin

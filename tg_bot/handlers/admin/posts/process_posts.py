@@ -13,7 +13,9 @@ from tg_bot.utils.exceptions import PostInMailing
 from tg_bot.utils.paginator import get_current_page_from_dict, slice_dict
 from tg_bot.utils.process_posts import get_posts_by_group_dict, remove_post, load_post
 
+
 router: Router = Router()
+
 
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'), StateFilter(FSMPosts.view_post_groups))
 async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, lexicon: TranslatorRunner):
@@ -25,6 +27,7 @@ async def process_paginator_groups(callback: CallbackQuery, state: FSMContext, l
       await callback.message.edit_text(text=lexicon.view.posts.group(), reply_markup=keyboard)
    except TelegramBadRequest:
       await callback.answer()
+
 
 @router.callback_query(StateFilter(FSMPosts.view_post_groups))
 async def process_get_posts_by_group(callback: CallbackQuery, state: FSMContext,
@@ -50,6 +53,7 @@ async def process_remove_post(callback: CallbackQuery, state: FSMContext,
    keyboard = await get_back_scroll_keyboard(result_dict['0'], lexicon, special_symbol='❌')
    await callback.message.edit_text(text=lexicon.select.post(), reply_markup=keyboard)
    await state.set_state(FSMPosts.remove_post)
+
 
 @router.callback_query(or_f(F.data == 'previous', F.data == 'next'),
                        or_f(StateFilter(FSMPosts.view_post), StateFilter(FSMPosts.remove_post)))

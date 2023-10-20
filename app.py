@@ -14,9 +14,9 @@ from tg_bot.meddleware import DbSessionMiddleware
 from tg_bot.handlers import router
 from tg_bot.utils.cache.cache_access import CacheAccess
 from tg_bot.utils.cache.groups import init_groups
-from tg_bot.utils.process_mailing import init_mailing
 from tg_bot.utils.process_user import init_admins
 from tkq import broker
+
 
 logger = logging.getLogger(__name__)
 redis: Redis = Redis(host=config.redis.host,
@@ -50,8 +50,9 @@ async def main() -> None:
     dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
     dp.include_router(router)
 
-    await redis.flushdb()
-    await init_groups(cache, session_maker, bot)
+    async with session_maker() as session:
+        await init_groups(cache, session, bot)
+
     await init_admins(cache=cache, session_pool=session_maker)
     await bot.delete_webhook(drop_pending_updates=True)
 
