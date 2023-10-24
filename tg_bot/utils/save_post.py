@@ -1,3 +1,4 @@
+import logging
 from aiogram import Bot
 from aiogram.enums import ContentType
 from aiogram.types import Message, TelegramObject
@@ -17,6 +18,7 @@ def create_media_id(media_group_id: str) -> str:
 
 async def save_text_post(session: AsyncSession, text: str, media_group_id: str, name_post: str):
     await add_text_post(session, text, create_media_id(media_group_id), name_post)
+    logging.info(f'The text post {name_post} has been saved')
 
 
 async def save_file(session: AsyncSession, message: Message, bot: Bot,
@@ -41,6 +43,7 @@ async def save_media_post(session: AsyncSession, message: Message,  bot: Bot, na
         folder = file_attributes[0]
 
     media_id = await save_file(session, message, bot, file, name, folder, name_post)
+    logging.info(f'The post {name_post} has been saved')
 
     return media_id
 
@@ -52,6 +55,7 @@ async def save_photo_post(session: AsyncSession, message: Message,  bot: Bot, na
     name = f'{take_uuid()}.{file_ext}'
     folder = 'photo'
     media_id = await save_file(session, message, bot, file, name, folder, name_post)
+    logging.info(f'The post {name_post} has been saved')
 
     return media_id
 
@@ -62,5 +66,6 @@ async def save_video_note(session: AsyncSession, message: Message,  bot: Bot, na
     name = f'{take_uuid()}.{file_ext}'
     folder = 'video_note'
     media_id = await save_file(session, message, bot, file, name, folder, name_post)
+    logging.info(f'The post {name_post} has been saved')
 
     return media_id

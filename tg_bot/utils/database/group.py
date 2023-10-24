@@ -40,3 +40,8 @@ async def change_active(session: AsyncSession, group: Group, is_active: bool):
     group.is_active = is_active
 
     await session.commit()
+
+
+async def refresh_group(session: AsyncSession, group: Group, title: str) -> None:
+    group.title = title
+    await session.commit()

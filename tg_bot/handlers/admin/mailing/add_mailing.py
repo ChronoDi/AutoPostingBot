@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter, or_f
@@ -23,7 +25,7 @@ router: Router = Router()
 
 @router.callback_query(F.data == 'add', StateFilter(FSMMailing.view_mailing))
 @router.callback_query(F.data == 'date', StateFilter(FSMMailing.view_mailing_menu))
-async def process_add_mailing(callback: CallbackQuery, lexicon: TranslatorRunner, state: FSMContext):
+async def process_start_add_mailing(callback: CallbackQuery, lexicon: TranslatorRunner, state: FSMContext):
     if callback.data == 'add':
         await state.update_data(edit=0)
     else:
@@ -178,7 +180,7 @@ async def process_mailing_name(message: Message, session: AsyncSession, state: F
     group_id = int(data['group_id'])
 
     date, mailing_id = await create_mailing(year=year, month=month, day=day, hour=hour,
-                                minute=minute, group_id=group_id, name=name, session=session)
+                                            minute=minute, group_id=group_id, name=name, session=session)
 
     task_id = await db_source.add_task(
         task=send_mailing.kicker().with_labels(),
@@ -187,6 +189,8 @@ async def process_mailing_name(message: Message, session: AsyncSession, state: F
     )
 
     await add_task_id(session, mailing_id, task_id)
+
+    logging.info(f'A mailing "{name}" has been added on the date {date}')
     keyboard = await get_to_mailing_keyboard(lexicon)
     await message.answer(text=lexicon.create.mailing(name=name, date=date), reply_markup=keyboard)
     await state.set_state(FSMMailing.create_mailing)

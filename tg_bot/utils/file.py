@@ -1,4 +1,4 @@
-import os
+import os, logging
 from aiogram import Bot
 from aiogram.enums import ContentType
 from aiogram.types import Message, TelegramObject
@@ -17,6 +17,7 @@ async def download_file(bot: Bot, file_id: str, name: str, folder: str):
     with open(new_file_path, 'wb') as f:
         f.write(file_path.getvalue())
 
+    logging.info(f'A file was downloaded {new_file_path}')
     return os.path.abspath(new_file_path)
 
 def get_file_by_type(message: Message) -> TelegramObject | None:

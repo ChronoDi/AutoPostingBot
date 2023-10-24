@@ -1,4 +1,5 @@
 import datetime
+import logging
 from asyncio import sleep
 from datetime import timedelta
 
@@ -76,6 +77,8 @@ async def send_mailing(mailing_id: int) -> None:
                             await bot.send_message(mailing.group_id, text=text)
 
                         await sleep(1)
+
+                    logging.info(f'The mailing {mailing.name} has been sent')
                 except FileNotFound as e:
                     text: str = f'Рассылка "{mailing.name}" на дату "{mailing.mailing_date}" не отправилась, ' \
                                 f'так как не были найдены все файлы в посте "{e.message}"'

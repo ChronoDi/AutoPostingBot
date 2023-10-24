@@ -1,4 +1,4 @@
-import datetime
+import datetime, logging
 from typing import Union
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -8,6 +8,7 @@ from tg_bot.database.models import Mailing, Group, Post, PostMailing
 from tg_bot.utils.database.group import get_group_by_tg_id
 from tg_bot.utils.database.mailing import get_all_mailing, get_mailing_by_id, set_group, set_time, change_post_count, \
     remove_mailing, sync_get_mailing_by_id, sync_delete_mailing, mark_sent, get_mailing_by_group_id
+
 from tg_bot.utils.database.post import get_post, get_post_by_id, sync_get_post_by_id
 from tg_bot.utils.database.post_mailing import add_post_mailing, get_all_post_in_mailing, get_post_mailing_by_id, \
     get_post_mailing_by_mailing_id_order, commit_post_mailing, get_post_mailing_by_mailing_id_post_id, \
@@ -38,11 +39,14 @@ async def get_group_name_mailing(session: AsyncSession, mailing_id: int) -> str:
 
 async def change_group(session: AsyncSession, mailing_id: int, new_group_id: int):
     await set_group(session, mailing_id, new_group_id)
+    logging.info(f'the group id has been changed to "{new_group_id} in mailing {mailing_id}"')
+
 
 
 async def change_date(session: AsyncSession, mailing_id: int, date: datetime):
     task_id = await set_time(session, mailing_id, date)
     await db_source.reschedule_task(task_id, date)
+    logging.info(f'The mailing "{mailing_id}" date has been changed to "{date}"')
 
 
 async def get_date(session: AsyncSession, mailing_id: int) -> datetime:
@@ -62,6 +66,7 @@ async def add_post_to_mailing(session: AsyncSession, mailing_id: int, group_id: 
                                post_id=post.id,
                                order=mailing.count_posts + 1)
         await change_post_count(session, mailing_id)
+        logging.info(f'The post {post.name} has been added to the mailing {mailing.name}')
 
         return mailing.name, post.name
 
@@ -192,3 +197,4 @@ async def get_mailing_by_group(session: AsyncSession, group_id: int) -> bool:
     list_groups = await get_mailing_by_group_id(session, group_id)
 
     return True if list_groups else False
+

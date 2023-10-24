@@ -1,4 +1,4 @@
-import os
+import os, logging
 
 import aiogram.types
 from sqlalchemy.exc import IntegrityError
@@ -29,6 +29,7 @@ async def load_post(session: AsyncSession, media_id: str):
                 file_list.append(aiogram.types.InputMediaDocument(media=aiogram.types.FSInputFile(media.url),
                                                                caption=post.text if not file_list else None))
 
+    logging.info(f'The post {post.name} has been added uploaded for mailing')
     return file_list, post.text
 
 
@@ -58,13 +59,16 @@ async def remove_post(session: AsyncSession, group_id: str):
         post: Post = await get_post(session, group_id)
         await remove_all_urls_by_post(session, post)
         await remove(session, post)
+        logging.info(f'The post "{post.name}" has been deleted')
     except IntegrityError:
+        logging.error(f'The post is in the mailing list')
         raise PostInMailing
 
 
 async def check_files(post: Post):
     for media in post.urls:
         if not os.path.exists(media.url):
+            logging.error(f'The file {media.url} from the post {post.name} was not found')
             raise FileNotFound(post.name)
 
 

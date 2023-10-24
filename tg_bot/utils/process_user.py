@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 
 from aiogram.types import Message
@@ -28,6 +29,9 @@ async def register_user(message: Message, session: AsyncSession, cache: CacheAcc
 
     access: str = '1' if (role == Role.ADMIN or role == Role.SUPER_ADMIN) else '0'
     await cache.add_to_dict(cache_names.ADMINS, str(message.from_user.id), access)
+    logging.info(f'A user by name "{message.from_user.first_name} {message.from_user.last_name} ({message.from_user.username})" '
+                 f'with an id "{message.from_user.id}" has been registered')
+
 
 
 async def get_admins_id(session: AsyncSession) -> list[int]:
@@ -84,6 +88,7 @@ async def change_user_role(session: AsyncSession, cache: CacheAccess, tg_id: int
     await change_role(session, tg_id, role)
     access = '1' if role == role.ADMIN else '0'
     await cache.add_to_dict(cache_names.ADMINS, str(tg_id), access)
+    logging.info(f'The user with the id {tg_id} changed the access level to {access}')
 
 
 async def show_users(list_users: list[User], lexicon: TranslatorRunner) -> str:

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot import bot
-from tg_bot.database.models import Mailing, User
+from tg_bot.database.models import User
 from tg_bot.utils.database.user import get_admins
 
 
