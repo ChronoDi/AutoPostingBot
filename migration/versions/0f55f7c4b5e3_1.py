@@ -1,8 +1,8 @@
 """1
 
-Revision ID: 42cf286065cc
+Revision ID: 0f55f7c4b5e3
 Revises: 
-Create Date: 2023-10-11 15:08:11.963201
+Create Date: 2023-10-25 16:11:03.350763
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '42cf286065cc'
+revision: str = '0f55f7c4b5e3'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,6 +25,7 @@ def upgrade() -> None:
     sa.Column('tg_id', sa.BigInteger(), nullable=False),
     sa.Column('type', sa.String(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id', 'tg_id'),
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('tg_id')
@@ -65,8 +66,9 @@ def upgrade() -> None:
     op.create_table('malling',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('uid', sa.String(), nullable=False),
     sa.Column('count_posts', sa.Integer(), nullable=False),
+    sa.Column('is_sent', sa.Boolean(), nullable=False),
+    sa.Column('task_id', sa.Integer(), nullable=True),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
     sa.Column('mailing_date', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['group_id'], ['groups.tg_id'], ),
